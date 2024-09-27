@@ -25,11 +25,11 @@ document.addEventListener('DOMContentLoaded', function () {
         changeHP(random(20), enemy);
     });
 
-    // $btnSpecial.addEventListener('click', function () {
-    //     console.log('Special Kick');
-    //     const target = randomTarget(); 
-    //     changeHP(20, target); 
-    // });
+    $btnSpecial.addEventListener('click', function () {
+        console.log('Special Kick');
+        const target = randomTarget(); 
+        changeHP(20, target); 
+    });
 
     function init() {
         console.log('Start Game!');
