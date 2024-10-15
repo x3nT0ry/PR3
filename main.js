@@ -1,98 +1,120 @@
-document.addEventListener('DOMContentLoaded', function () { 
-    const $btn = document.getElementById('btn-kick');
-    const $btnSpecial = document.getElementById('btn-special');
+import { generateLog } from "./logs.js";
 
-    const character = {
-        name: 'Pikachu',
-        defaultHP: 100,
-        damageHP: 100,
-        elHP: document.getElementById('health-character'),
-        elProgressbar: document.getElementById('progressbar-character'),
+document.addEventListener("DOMContentLoaded", function () {
+    const $btn = document.getElementById("btn-kick");
+    const $btnSpecial = document.getElementById("btn-special");
+    const $logs = document.getElementById("logs");
 
-        renderHP: function() {
-            this.renderHPLife();
-            this.renderProgressbarHP();
-        },
+    const createCharacter = ({ name, defaultHP, elHPId, elProgressbarId }) => {
+        const elHP = document.getElementById(elHPId);
+        const elProgressbar = document.getElementById(elProgressbarId);
 
-        renderHPLife: function() {
-            this.elHP.innerText = this.damageHP + '/' + this.defaultHP;
-        },
+        return {
+            name,
+            defaultHP,
+            damageHP: defaultHP,
+            elHP,
+            elProgressbar,
 
-        renderProgressbarHP: function() {
-            this.elProgressbar.style.width = (this.damageHP / this.defaultHP * 100) + '%';
-        },
+            renderHP() {
+                this.renderHPLife();
+                this.renderProgressbarHP();
+            },
 
-        changeHP: function(count) {
-            if (this.damageHP < count) {
-                this.damageHP = 0;
-                alert('Бідний ' + this.name + ' програв бій!');
-                $btn.disabled = true;
-                $btnSpecial.disabled = true;
-            } else {
-                this.damageHP -= count;
-            }
-            this.renderHP();
-        }
+            renderHPLife() {
+                this.elHP.innerText = `${this.damageHP}/${this.defaultHP}`;
+            },
+
+            renderProgressbarHP() {
+                this.elProgressbar.style.width = `${(this.damageHP / this.defaultHP) * 100}%`;
+            },
+
+            changeHP(count) {
+                if (this.damageHP < count) {
+                    this.damageHP = 0;
+                    alert(`Бедный ${this.name} проиграл бой!`);
+                    $btn.disabled = true;
+                    $btnSpecial.disabled = true;
+                } else {
+                    this.damageHP -= count;
+                }
+                this.renderHP();
+            },
+        };
     };
 
-    const enemy = {
-        name: 'Charmander',
+    const { name: characterName, defaultHP: characterDefaultHP, elHPId: characterElHPId, elProgressbarId: characterElProgressbarId } = {
+        name: "Pikachu",
         defaultHP: 100,
-        damageHP: 100,
-        elHP: document.getElementById('health-enemy'),
-        elProgressbar: document.getElementById('progressbar-enemy'),
-
-        renderHP: function() {
-            this.renderHPLife();
-            this.renderProgressbarHP();
-        },
-
-        renderHPLife: function() {
-            this.elHP.innerText = this.damageHP + '/' + this.defaultHP;
-        },
-
-        renderProgressbarHP: function() {
-            this.elProgressbar.style.width = (this.damageHP / this.defaultHP * 100) + '%';
-        },
-
-        changeHP: function(count) {
-            if (this.damageHP < count) {
-                this.damageHP = 0;
-                alert('Бідний ' + this.name + ' програв бій!');
-                $btn.disabled = true;
-                $btnSpecial.disabled = true;
-            } else {
-                this.damageHP -= count;
-            }
-            this.renderHP();
-        }
+        elHPId: "health-character",
+        elProgressbarId: "progressbar-character",
     };
 
-    $btn.addEventListener('click', function () {
-        console.log('Kick');
-        character.changeHP(random(20));
-        enemy.changeHP(random(20));
+    const { name: enemyName, defaultHP: enemyDefaultHP, elHPId: enemyElHPId, elProgressbarId: enemyElProgressbarId } = {
+        name: "Charmander",
+        defaultHP: 100,
+        elHPId: "health-enemy",
+        elProgressbarId: "progressbar-enemy",
+    };
+
+    const character = createCharacter({
+        name: characterName,
+        defaultHP: characterDefaultHP,
+        elHPId: characterElHPId,
+        elProgressbarId: characterElProgressbarId,
     });
 
-    $btnSpecial.addEventListener('click', function () {
-        console.log('Special Kick');
-        const target = randomTarget();
-        target.changeHP(20);
+    const enemy = createCharacter({
+        name: enemyName,
+        defaultHP: enemyDefaultHP,
+        elHPId: enemyElHPId,
+        elProgressbarId: enemyElProgressbarId,
     });
 
     function init() {
-        console.log('Start Game!');
+        console.log("Start Game!");
         character.renderHP();
         enemy.renderHP();
     }
 
-    function random(num) {
-        return Math.ceil(Math.random() * num);
+    const random = (num) => Math.ceil(Math.random() * num);
+
+    function addLog(log) {
+        const logEntry = document.createElement("p");
+        logEntry.innerText = log;
+        $logs.prepend(logEntry);
     }
+
+    $btn.addEventListener("click", function () {
+        const damageCharacter = random(20);
+        const damageEnemy = random(20);
+
+        character.changeHP(damageCharacter);
+        enemy.changeHP(damageEnemy);
+
+        const characterLog = generateLog(character, enemy, damageCharacter);
+        const enemyLog = generateLog(enemy, character, damageEnemy);
+
+        addLog(characterLog);
+        addLog(enemyLog);
+    });
 
     function randomTarget() {
         return Math.random() < 0.5 ? character : enemy;
     }
+
+    $btnSpecial.addEventListener("click", function () {
+        const target = randomTarget();
+        const damage = 20;
+        target.changeHP(damage);
+
+        const log = generateLog(
+            target,
+            target === character ? enemy : character,
+            damage
+        );
+        addLog(log);
+    });
 
     init();
 });
