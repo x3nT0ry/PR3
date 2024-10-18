@@ -1,3 +1,5 @@
+import { Pokemon } from "./Pokemon.js";
+import { random, createClickCounter, randomTarget } from "./utils.js";
 import { generateLog } from "./logs.js";
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -5,79 +7,28 @@ document.addEventListener("DOMContentLoaded", function () {
     const $btnSpecial = document.getElementById("btn-special");
     const $logs = document.getElementById("logs");
 
-    const createCharacter = ({ name, defaultHP, elHPId, elProgressbarId }) => {
-        const elHP = document.getElementById(elHPId);
-        const elProgressbar = document.getElementById(elProgressbarId);
+    const kickCounter = createClickCounter(6);
+    const specialCounter = createClickCounter(6);
 
-        return {
-            name,
-            defaultHP,
-            damageHP: defaultHP,
-            elHP,
-            elProgressbar,
-
-            renderHP() {
-                this.renderHPLife();
-                this.renderProgressbarHP();
-            },
-
-            renderHPLife() {
-                this.elHP.innerText = `${this.damageHP}/${this.defaultHP}`;
-            },
-
-            renderProgressbarHP() {
-                this.elProgressbar.style.width = `${(this.damageHP / this.defaultHP) * 100}%`;
-            },
-
-            changeHP(count) {
-                if (this.damageHP < count) {
-                    this.damageHP = 0;
-                    alert(`Бедный ${this.name} проиграл бой!`);
-                    $btn.disabled = true;
-                    $btnSpecial.disabled = true;
-                } else {
-                    this.damageHP -= count;
-                }
-                this.renderHP();
-            },
-        };
-    };
-
-    const { name: characterName, defaultHP: characterDefaultHP, elHPId: characterElHPId, elProgressbarId: characterElProgressbarId } = {
+    const character = new Pokemon({
         name: "Pikachu",
         defaultHP: 100,
         elHPId: "health-character",
         elProgressbarId: "progressbar-character",
-    };
+    });
 
-    const { name: enemyName, defaultHP: enemyDefaultHP, elHPId: enemyElHPId, elProgressbarId: enemyElProgressbarId } = {
+    const enemy = new Pokemon({
         name: "Charmander",
         defaultHP: 100,
         elHPId: "health-enemy",
         elProgressbarId: "progressbar-enemy",
-    };
-
-    const character = createCharacter({
-        name: characterName,
-        defaultHP: characterDefaultHP,
-        elHPId: characterElHPId,
-        elProgressbarId: characterElProgressbarId,
-    });
-
-    const enemy = createCharacter({
-        name: enemyName,
-        defaultHP: enemyDefaultHP,
-        elHPId: enemyElHPId,
-        elProgressbarId: enemyElProgressbarId,
     });
 
     function init() {
-        console.log("Start Game!");
+        console.log("Початок гри!");
         character.renderHP();
         enemy.renderHP();
     }
-
-    const random = (num) => Math.ceil(Math.random() * num);
 
     function addLog(log) {
         const logEntry = document.createElement("p");
@@ -86,34 +37,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     $btn.addEventListener("click", function () {
-        const damageCharacter = random(20);
-        const damageEnemy = random(20);
+        if (kickCounter()) {
+            const damageCharacter = random(20);
+            const damageEnemy = random(20);
 
-        character.changeHP(damageCharacter);
-        enemy.changeHP(damageEnemy);
+            character.changeHP(damageCharacter);
+            enemy.changeHP(damageEnemy);
 
-        const characterLog = generateLog(character, enemy, damageCharacter);
-        const enemyLog = generateLog(enemy, character, damageEnemy);
+            const characterLog = generateLog(character, enemy, damageCharacter);
+            const enemyLog = generateLog(enemy, character, damageEnemy);
 
-        addLog(characterLog);
-        addLog(enemyLog);
+            addLog(characterLog);
+            addLog(enemyLog);
+        }
     });
 
-    function randomTarget() {
-        return Math.random() < 0.5 ? character : enemy;
-    }
-
     $btnSpecial.addEventListener("click", function () {
-        const target = randomTarget();
-        const damage = 20;
-        target.changeHP(damage);
+        if (specialCounter()) {
+            const target = randomTarget(character, enemy);
+            const damage = 20;
+            target.changeHP(damage);
 
-        const log = generateLog(
-            target,
-            target === character ? enemy : character,
-            damage
-        );
-        addLog(log);
+            const log = generateLog(
+                target,
+                target === character ? enemy : character,
+                damage
+            );
+            addLog(log);
+        }
     });
 
     init();
